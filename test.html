@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartFocus Pro | Advanced Localhost</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-body: #050505;
+            --bg-card: #121212;
+            --bg-input: #1e1e1e;
+            --bg-hover: #2a2a2a;
+            --accent: #7c4dff;
+            --accent-glow: rgba(124, 77, 255, 0.4);
+            --text-main: #e0e0e0;
+            --text-muted: #888;
+            --danger: #ff5252;
+            --warning: #ffb74d;
+            --success: #69f0ae;
+            --border: #333;
+            --font-stack: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: var(--font-stack); }
+
+        body {
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            padding-top: 5vh;
+        }
+
+        .container {
+            width: 95%;
+            max-width: 600px;
+            background: var(--bg-card);
+            border-radius: 12px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.9);
+            border: 1px solid var(--border);
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        /* --- Stats Dashboard --- */
+        .stats-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 1.5rem;
+            background: var(--bg-input);
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+
+        .stat-box {
+            text-align: center;
+        }
+        .stat-val { font-size: 1.5rem; font-weight: bold; color: var(--accent); }
+        .stat-label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; }
+
+        /* --- Header & Controls --- */
+        header { margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: flex-end; }
+        h1 { font-size: 1.5rem; background: linear-gradient(90deg, #fff, #999); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .date-display { font-size: 0.85rem; color: var(--text-muted); }
+
+        .search-bar {
+            width: 100%;
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            outline: none;
+        }
+        .search-bar:focus { border-color: var(--accent); }
+
+        .filters {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 1.5rem;
+            overflow-x: auto;
+            padding-bottom: 5px;
+        }
+
+        .filter-btn {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: 0.2s;
+        }
+
+        .filter-btn.active, .filter-btn:hover {
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
+            box-shadow: 0 0 10px var(--accent-glow);
+        }
+
+        /* --- Input Area --- */
+        .input-wrapper {
+            background: #181818;
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            margin-bottom: 2rem;
+            display: grid;
+            gap: 10px;
+            grid-template-columns: 1fr auto auto;
+        }
+
+        .main-input {
+            grid-column: 1 / -1;
+            width: 100%;
+            background: var(--bg-input);
+            border: none;
+            color: white;
+            padding: 12px;
+            border-radius: 6px;
+            outline: none;
+            font-size: 1rem;
+        }
+
+        .options-row {
+            grid-column: 1 / -1;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        select, input[type="date"] {
+            background: var(--bg-input);
+            color: var(--text-muted);
+            border: 1px solid var(--border);
+            padding: 8px;
+            border-radius: 6px;
+            outline: none;
+            cursor: pointer;
+        }
+
+        .add-btn {
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-left: auto;
+            transition: 0.2s;
+        }
+        .add-btn:hover { background: #651fff; box-shadow: 0 0 10px var(--accent-glow); }
+
+        /* --- Checkbox for Daily --- */
+        .daily-toggle {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            cursor: pointer;
+            user-select: none;
+        }
+        .daily-toggle input { display: none; }
+        .checkmark { width: 16px; height: 16px; border: 1px solid var(--border); border-radius: 4px; display: inline-block; position: relative; }
+        .daily-toggle input:checked + .checkmark { background: var(--success); border-color: var(--success); }
+
+        /* --- List --- */
+        ul { list-style: none; }
+        li {
+            background: var(--bg-card);
+            border-bottom: 1px solid var(--bg-hover);
+            padding: 15px 10px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            transition: 0.2s;
+        }
+        li:hover { background: var(--bg-hover); }
+
+        .task-checkbox {
+            width: 20px; height: 20px;
+            border: 2px solid var(--accent);
+            border-radius: 50%;
+            cursor: pointer;
+            flex-shrink: 0;
+            display: grid; place-items: center;
+        }
+        .completed .task-checkbox { background: var(--accent); }
+        .completed .task-checkbox::after { content: '✔'; font-size: 10px; color: white; }
+
+        .task-info { flex-grow: 1; display: flex; flex-direction: column; gap: 4px; }
+        .task-text { font-size: 1rem; color: var(--text-main); transition: 0.2s; }
+        .completed .task-text { text-decoration: line-through; color: var(--text-muted); }
+        
+        .meta-tags { display: flex; gap: 8px; font-size: 0.75rem; }
+        .tag { padding: 2px 6px; border-radius: 4px; display: inline-flex; align-items: center; gap: 4px; }
+        
+        .tag-p-high { color: var(--danger); border: 1px solid rgba(255, 82, 82, 0.2); }
+        .tag-p-medium { color: var(--warning); border: 1px solid rgba(255, 183, 77, 0.2); }
+        .tag-p-low { color: var(--success); border: 1px solid rgba(105, 240, 174, 0.2); }
+        
+        .tag-date { color: var(--text-muted); background: #222; }
+        .tag-overdue { color: var(--danger); font-weight: bold; }
+        
+        .tag-daily { color: #64b5f6; border: 1px solid rgba(100, 181, 246, 0.2); }
+
+        .actions { display: flex; gap: 10px; opacity: 0; transition: 0.2s; }
+        li:hover .actions { opacity: 1; }
+        .action-btn { background: none; border: none; color: var(--text-muted); cursor: pointer; }
+        .action-btn:hover { color: var(--danger); }
+
+        /* --- Scrollbar --- */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <div>
+            <h1>SmartFocus Pro</h1>
+            <div class="date-display" id="currentDate"></div>
+        </div>
+        <button onclick="checkDailyReset(true)" title="Force Daily Reset" style="background:none; border:none; color:#333; cursor:pointer;"><i class="fas fa-sync"></i></button>
+    </header>
+
+    <div class="stats-container">
+        <div class="stat-box">
+            <div class="stat-val" id="statTotal">0</div>
+            <div class="stat-label">Total</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-val" id="statRate">0%</div>
+            <div class="stat-label">Completion</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-val" style="color:var(--warning)" id="statPending">0</div>
+            <div class="stat-label">Pending</div>
+        </div>
+    </div>
+
+    <input type="text" id="searchInput" class="search-bar" placeholder="🔍 Search tasks..." onkeyup="renderTodos()">
+    
+    <div class="filters">
+        <button class="filter-btn active" onclick="setFilter('all')">All</button>
+        <button class="filter-btn" onclick="setFilter('active')">Active</button>
+        <button class="filter-btn" onclick="setFilter('high')">High Priority</button>
+        <button class="filter-btn" onclick="setFilter('due')">Due Soon</button>
+        <button class="filter-btn" onclick="setFilter('daily')">Daily Routine</button>
+    </div>
+
+    <div class="input-wrapper">
+        <input type="text" class="main-input" id="todoInput" placeholder="What needs to be done?">
+        <div class="options-row">
+            <select id="prioritySelect">
+                <option value="medium">Medium Priority</option>
+                <option value="high">High Priority</option>
+                <option value="low">Low Priority</option>
+            </select>
+            <input type="date" id="dateInput">
+            <label class="daily-toggle" title="Task unchecks itself every morning">
+                <input type="checkbox" id="dailyCheck"> 
+                <span class="checkmark"></span>
+                <i class="fas fa-redo"></i> Daily
+            </label>
+            <button class="add-btn" onclick="addTodo()">ADD</button>
+        </div>
+    </div>
+
+    <ul id="todoList"></ul>
+</div>
+
+<script>
+    // --- State ---
+    let todos = [];
+    let currentFilter = 'all';
+
+    // --- DOM Elements ---
+    const todoList = document.getElementById('todoList');
+    const todoInput = document.getElementById('todoInput');
+    const prioritySelect = document.getElementById('prioritySelect');
+    const dateInput = document.getElementById('dateInput');
+    const dailyCheck = document.getElementById('dailyCheck');
+    const searchInput = document.getElementById('searchInput');
+    const currentDateEl = document.getElementById('currentDate');
+
+    // --- Initialization ---
+    window.addEventListener('load', () => {
+        // Display Date
+        const now = new Date();
+        currentDateEl.innerText = now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+
+        // Load Data
+        const saved = localStorage.getItem('smartTodosPro');
+        if (saved) todos = JSON.parse(saved);
+
+        // Check for Daily Reset
+        checkDailyReset();
+
+        renderTodos();
+        updateStats();
+    });
+
+    // --- Core Functions ---
+
+    function addTodo() {
+        const text = todoInput.value.trim();
+        if (!text) return;
+
+        const newTodo = {
+            id: Date.now(),
+            text: text,
+            priority: prioritySelect.value,
+            dueDate: dateInput.value, // YYYY-MM-DD
+            isDaily: dailyCheck.checked,
+            completed: false,
+            createdAt: Date.now()
+        };
+
+        todos.unshift(newTodo);
+        save();
+        
+        // Reset Inputs
+        todoInput.value = '';
+        dailyCheck.checked = false;
+        dateInput.value = '';
+        renderTodos();
+    }
+
+    function toggleTodo(id) {
+        todos = todos.map(t => t.id === id ? {...t, completed: !t.completed} : t);
+        save();
+        renderTodos();
+    }
+
+    function deleteTodo(id) {
+        if(confirm('Delete this task?')) {
+            todos = todos.filter(t => t.id !== id);
+            save();
+            renderTodos();
+        }
+    }
+
+    // --- Smart Logic: Daily Reset ---
+    function checkDailyReset(force = false) {
+        const lastLogin = localStorage.getItem('lastLoginDate');
+        const today = new Date().toDateString();
+
+        if (force || lastLogin !== today) {
+            // It's a new day! Reset all tasks marked as 'isDaily'
+            let resetCount = 0;
+            todos = todos.map(t => {
+                if (t.isDaily && t.completed) {
+                    resetCount++;
+                    return { ...t, completed: false };
+                }
+                return t;
+            });
+            
+            if (resetCount > 0) alert(`🌞 Good Morning! ${resetCount} daily routines have been reset.`);
+            
+            localStorage.setItem('lastLoginDate', today);
+            save();
+        }
+    }
+
+    // --- Search & Filter Logic ---
+    function setFilter(filterType) {
+        currentFilter = filterType;
+        // Update UI buttons
+        document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+        event.target.classList.add('active');
+        renderTodos();
+    }
+
+    function renderTodos() {
+        todoList.innerHTML = '';
+        const search = searchInput.value.toLowerCase();
+
+        // Filter Logic
+        let filtered = todos.filter(t => {
+            // Search Match
+            if (!t.text.toLowerCase().includes(search)) return false;
+
+            // Category Match
+            if (currentFilter === 'all') return true;
+            if (currentFilter === 'active') return !t.completed;
+            if (currentFilter === 'high') return t.priority === 'high' && !t.completed;
+            if (currentFilter === 'daily') return t.isDaily;
+            if (currentFilter === 'due') {
+                if(!t.dueDate || t.completed) return false;
+                const due = new Date(t.dueDate);
+                const now = new Date();
+                const diffTime = due - now;
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
+                return diffDays <= 2; // Due within 2 days or overdue
+            }
+            return true;
+        });
+
+        // Render
+        if (filtered.length === 0) {
+            todoList.innerHTML = `<li style="justify-content:center; color:gray; background:transparent; border:none;">No tasks found</li>`;
+        }
+
+        filtered.forEach(t => {
+            const li = document.createElement('li');
+            if (t.completed) li.classList.add('completed');
+            
+            // Format Date Logic
+            let dateBadge = '';
+            if (t.dueDate) {
+                const dueObj = new Date(t.dueDate);
+                // Fix timezone offset for cleaner display
+                const userTimezoneOffset = dueObj.getTimezoneOffset() * 60000;
+                const adjustedDate = new Date(dueObj.getTime() + userTimezoneOffset);
+                
+                const today = new Date();
+                today.setHours(0,0,0,0);
+                
+                const isOverdue = dueObj < today && !t.completed;
+                const dateClass = isOverdue ? 'tag-overdue' : 'tag-date';
+                const icon = isOverdue ? '<i class="fas fa-exclamation-circle"></i>' : '<i class="far fa-calendar"></i>';
+                
+                dateBadge = `<span class="tag ${dateClass}">${icon} ${adjustedDate.toLocaleDateString()}</span>`;
+            }
+
+            // Daily Badge
+            const dailyBadge = t.isDaily ? `<span class="tag tag-daily"><i class="fas fa-redo"></i> Daily</span>` : '';
+
+            li.innerHTML = `
+                <div class="task-checkbox" onclick="toggleTodo(${t.id})"></div>
+                <div class="task-info">
+                    <span class="task-text">${escapeHtml(t.text)}</span>
+                    <div class="meta-tags">
+                        <span class="tag tag-p-${t.priority}">${t.priority.toUpperCase()}</span>
+                        ${dateBadge}
+                        ${dailyBadge}
+                    </div>
+                </div>
+                <div class="actions">
+                    <button class="action-btn" onclick="deleteTodo(${t.id})"><i class="fas fa-trash"></i></button>
+                </div>
+            `;
+            todoList.appendChild(li);
+        });
+
+        updateStats();
+    }
+
+    function updateStats() {
+        const total = todos.length;
+        const completed = todos.filter(t => t.completed).length;
+        const pending = total - completed;
+        const rate = total === 0 ? 0 : Math.round((completed / total) * 100);
+
+        document.getElementById('statTotal').innerText = total;
+        document.getElementById('statRate').innerText = rate + '%';
+        document.getElementById('statPending').innerText = pending;
+    }
+
+    function save() {
+        localStorage.setItem('smartTodosPro', JSON.stringify(todos));
+        updateStats();
+    }
+
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    // Enter Key Support
+    todoInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') addTodo();
+    });
+
+</script>
+</body>
+</html>

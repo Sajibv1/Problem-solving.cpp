@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Language Translator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* Updated theme: modern dark glassmorphism (purple -> white) */
+        :root {
+            --bg-deep: #000000;
+            --grid-color: rgba(255,255,255,0.03);
+            --card-bg: rgba(255,255,255,0.04);
+            --card-border: rgba(255,255,255,0.06);
+            --primary-gradient: linear-gradient(135deg, #ffffff, #e6e6e6);
+            --accent-glow: rgba(255, 255, 255, 0.30);
+            --text-main: #ffffff;
+            --text-muted: #9ca3af;
+            --radius: 16px;
+            --bg-input: rgba(255,255,255,0.02);
+            --border-subtle: rgba(255,255,255,0.06);
+        }
+
+        * {
+            box-sizing: border-box;
+            outline: none;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg-deep);
+            color: var(--text-main);
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column; /* Changed for mobile stacking */
+            align-items: center;
+            justify-content: center;
+
+            background-image:
+                linear-gradient(90deg, var(--grid-color) 1px, transparent 1px),
+                linear-gradient(0deg, var(--grid-color) 1px, transparent 1px),
+                radial-gradient(circle at 15% 10%, rgba(255,255,255,0.04) 0%, transparent 40%),
+                radial-gradient(circle at 85% 90%, rgba(255,255,255,0.02) 0%, transparent 40%);
+            background-size: 28px 28px, 28px 28px, cover, cover;
+        }
+
+        /* --- NEW NAVIGATION STYLES --- */
+        .top-nav {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 12px;
+            z-index: 100;
+        }
+
+        .nav-link {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px 18px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            text-decoration: none;
+            color: var(--text-muted);
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 30px; /* Pill shape */
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .nav-link:hover {
+            color: #fff;
+            background: rgba(255,255,255,0.08);
+            border-color: rgba(255,255,255,0.2);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+        }
+        /* ----------------------------- */
+
+        .container {
+            width: 100%;
+            max-width: 900px;
+            padding: 2rem;
+            position: relative;
+            z-index: 10;
+            transform: translateY(-10px); 
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 2.5rem;
+        }
+
+        h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            margin: 0;
+            letter-spacing: -1px;
+            background: linear-gradient(to right, #fff, #94a3b8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 30px rgba(255,255,255,0.1);
+            color: var(--text-main);
+        }
+
+        .description {
+            color: var(--text-muted);
+            font-size: 1rem;
+            margin-top: 0.5rem;
+            font-weight: 300;
+        }
+
+        .translator-container {
+            position: relative;
+            background: var(--card-bg);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius);
+            box-shadow: 0 8px 30px rgba(2,6,23,0.7);
+            overflow: hidden;
+            transition: transform 0.3s ease;
+        }
+
+        .language-selector {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border-subtle);
+            gap: 1rem;
+        }
+
+        html, body {
+            color-scheme: dark;
+        }
+
+        .select-wrapper {
+            position: relative;
+            flex: 1;
+            min-width: 120px;
+        }
+
+        .select-wrapper::after {
+            content: "";
+            position: absolute;
+            top: 50%;
+            right: 14px;
+            width: 10px;
+            height: 10px;
+            pointer-events: none;
+            transform: translateY(-40%) rotate(45deg);
+            border-right: 2px solid rgba(255,255,255,0.7);
+            border-bottom: 2px solid rgba(255,255,255,0.7);
+            opacity: 0.9;
+        }
+
+        select {
+            width: 100%;
+            appearance: none !important;
+            background-color: var(--bg-input);
+            color: var(--text-main);
+            border: 1px solid var(--border-subtle);
+            padding: 0.9rem 2.75rem 0.9rem 1rem;
+            border-radius: 12px;
+            font-family: inherit;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.18s ease;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.02), 0 3px 10px rgba(0,0,0,0.6);
+            backdrop-filter: blur(4px);
+            color-scheme: dark;
+            background-clip: padding-box;
+        }
+
+        select:hover {
+            border-color: rgba(255,255,255,0.18);
+            background-color: rgba(255,255,255,0.02);
+        }
+
+        select:focus {
+            border-color: rgba(255,255,255,0.14);
+            box-shadow: 0 0 0 3px rgba(255,255,255,0.04), inset 0 1px 0 rgba(255,255,255,0.02);
+            outline: none;
+            background-color: rgba(255,255,255,0.02);
+        }
+
+        select::-ms-expand { display: none; }
+
+        select option {
+            color: #fff;
+            background-color: #0b0b0b;
+        }
+
+        .swap-btn {
+            background: transparent;
+            border: 1px solid var(--border-subtle);
+            color: var(--text-muted);
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            margin: 0 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .swap-btn:hover {
+            background: var(--primary-gradient);
+            border-color: transparent;
+            color: #000;
+            box-shadow: 0 0 18px var(--accent-glow);
+            transform: rotate(180deg);
+        }
+
+        .text-areas {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            min-height: 300px;
+        }
+
+        .text-area-container {
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid var(--border-subtle);
+            position: relative;
+        }
+
+        .text-area-container:last-child {
+            border-right: none;
+            background: rgba(0,0,0,0.2);
+        }
+
+        .label-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .label-row h3 {
+            margin: 0;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: #ffffff;
+            font-weight: 700;
+        }
+
+        textarea {
+            width: 100%;
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: var(--text-main);
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.1rem;
+            line-height: 1.6;
+            resize: none;
+        }
+
+        textarea::placeholder {
+            color: rgba(255,255,255,0.2);
+        }
+
+        textarea::-webkit-scrollbar {
+            width: 6px;
+        }
+        textarea::-webkit-scrollbar-thumb {
+            background: rgba(255,255,255,0.1);
+            border-radius: 3px;
+        }
+
+        .copy-btn {
+            background: rgba(255,255,255,0.05);
+            border: none;
+            color: var(--text-muted);
+            padding: 6px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+
+        .copy-btn:hover {
+            background: rgba(255,255,255,0.1);
+            color: white;
+        }
+
+        .copy-btn.success {
+            color: #4ade80;
+            background: rgba(74, 222, 128, 0.1);
+        }
+
+        .controls {
+            padding: 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+            border-top: 1px solid var(--border-subtle);
+            background: rgba(0,0,0,0.2);
+        }
+
+        .btn {
+            padding: 0.8rem 1.8rem;
+            border-radius: 10px;
+            font-weight: 500;
+            cursor: pointer;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            border: none;
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--text-muted);
+            border: 1px solid var(--border-subtle);
+        }
+
+        .btn-secondary:hover {
+            color: white;
+            background: rgba(255,255,255,0.05);
+            border-color: rgba(255,255,255,0.2);
+        }
+
+        .btn-primary {
+            background: var(--primary-gradient);
+            color: #000;
+            box-shadow: 0 4px 20px rgba(255,255,255,0.08);
+        }
+
+        .btn-primary:hover {
+            box-shadow: 0 6px 30px rgba(255,255,255,0.12);
+            transform: translateY(-2px);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .loading {
+            display: inline-block;
+            width: 1rem;
+            height: 1rem;
+            border: 2px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+            margin-left: 0.5rem;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        footer {
+            text-align: center;
+            margin-top: 2rem;
+            color: var(--text-muted);
+            font-size: 0.875rem;
+            opacity: 0.7;
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .language-selector { flex-direction: column; gap: 1rem; }
+            .swap-btn { transform: rotate(90deg); margin: 0.5rem 0; }
+            .swap-btn:hover { transform: rotate(270deg); }
+            .text-areas { grid-template-columns: 1fr; }
+            .text-area-container { border-right: none; border-bottom: 1px solid var(--border-subtle); min-height: 200px; }
+            .controls { flex-direction: column-reverse; }
+            .btn { width: 100%; }
+
+            /* Mobile Navigation Adjustments */
+            .top-nav {
+                position: relative;
+                top: auto;
+                right: auto;
+                width: 100%;
+                justify-content: center;
+                margin-top: 1rem;
+                margin-bottom: 0.5rem;
+                padding: 0 1rem;
+            }
+            
+            .nav-link {
+                padding: 8px 14px;
+                font-size: 0.85rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="top-nav">
+        <a href="grammerfixer.html" class="nav-link">Grammar Fixer</a>
+        <a href="sremover.html" class="nav-link">Clean AI Texts</a>
+    </div>
+
+    <div class="container">
+        <header>
+            <h1>AI Language Translator</h1>
+            <p class="description">Powered by LLM for accurate multilingual translations</p>
+        </header>
+
+        <div class="translator-container">
+            <div class="language-selector">
+                <div class="select-wrapper">
+                    <select id="sourceLanguage">
+                        <option value="bn">Bangla</option>
+                        <option value="en" selected>English</option>
+                        <option value="ar">Arabic</option>
+                        <option value="hi">Hindi</option>
+                    </select>
+                </div>
+
+                <button class="swap-btn" id="swapLanguages" title="Swap languages">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="17 1 21 5 17 9"></polyline>
+                        <path d="M3 11V9a4 4 0 0 1 4-4h14"></path>
+                        <polyline points="7 23 3 19 7 15"></polyline>
+                        <path d="M21 13v2a4 4 0 0 1-4 4H3"></path>
+                    </svg>
+                </button>
+
+                <div class="select-wrapper">
+                    <select id="targetLanguage">
+                        <option value="bn" selected>Bangla</option>
+                        <option value="en">English</option>
+                        <option value="ar">Arabic</option>
+                        <option value="hi">Hindi</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="text-areas">
+                <div class="text-area-container">
+                    <div class="label-row">
+                        <h3>Original Text</h3>
+                    </div>
+                    <textarea id="sourceText" placeholder="Enter text to translate..."></textarea>
+                </div>
+
+                <div class="text-area-container">
+                    <div class="label-row">
+                        <h3>Translation</h3>
+                        <button class="copy-btn" id="copyBtn" title="Copy to Clipboard">
+                            <span class="icon">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                            </span>
+                            <span class="text">Copy</span>
+                        </button>
+                    </div>
+                    <textarea id="targetText" placeholder="Translation will appear here..." readonly></textarea>
+                </div>
+            </div>
+
+            <div class="controls">
+                <div>
+                    <button class="btn btn-secondary" id="clearText">Clear</button>
+                </div>
+                <div style="display: flex; gap: 10px; width: 100%; justify-content: flex-end;">
+                     <button class="btn btn-secondary" id="downloadPdf">Download PDF</button>
+                    <button class="btn btn-primary" id="translateBtn">Translate</button>
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            <p>Using LLM for high-quality translations that understand context</p>
+        </footer>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script>
+        const { jsPDF } = window.jspdf;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Elements
+            const sourceLanguage = document.getElementById('sourceLanguage');
+            const targetLanguage = document.getElementById('targetLanguage');
+            const swapBtn = document.getElementById('swapLanguages');
+            const sourceText = document.getElementById('sourceText');
+            const targetText = document.getElementById('targetText');
+            const translateBtn = document.getElementById('translateBtn');
+            const clearBtn = document.getElementById('clearText');
+            const downloadPdfBtn = document.getElementById('downloadPdf');
+            const copyBtn = document.getElementById('copyBtn');
+
+            // Language names mapping
+            const languageNames = {
+                'bn': 'Bangla',
+                'en': 'English',
+                'ar': 'Arabic',
+                'hi': 'Hindi'
+            };
+
+            // Swap Logic
+            swapBtn.addEventListener('click', function() {
+                const temp = sourceLanguage.value;
+                sourceLanguage.value = targetLanguage.value;
+                targetLanguage.value = temp;
+                
+                // Also swap text if there's content
+                if (sourceText.value || targetText.value) {
+                    const tempText = sourceText.value;
+                    sourceText.value = targetText.value;
+                    targetText.value = tempText;
+                }
+            });
+
+            // Copy to Clipboard Logic
+            copyBtn.addEventListener('click', () => {
+                if(!targetText.value) return;
+
+                navigator.clipboard.writeText(targetText.value).then(() => {
+                    const originalHtml = copyBtn.innerHTML;
+                    
+                    // Change style to indicate success
+                    copyBtn.classList.add('success');
+                    copyBtn.innerHTML = `
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        <span class="text">Copied!</span>
+                    `;
+
+                    // Revert after 2 seconds
+                    setTimeout(() => {
+                        copyBtn.classList.remove('success');
+                        copyBtn.innerHTML = originalHtml;
+                    }, 2000);
+                }).catch(err => {
+                    console.error('Failed to copy: ', err);
+                });
+            });
+
+            // Clear Text
+            clearBtn.addEventListener('click', function() {
+                sourceText.value = '';
+                targetText.value = '';
+                sourceText.focus();
+            });
+
+            // Translate Text
+            translateBtn.addEventListener('click', async function() {
+                const text = sourceText.value.trim();
+                if (!text) {
+                    alert('Please enter text to translate');
+                    return;
+                }
+
+                const fromLang = sourceLanguage.value;
+                const toLang = targetLanguage.value;
+
+                if (fromLang === toLang) {
+                    alert('Source and target languages cannot be the same');
+                    return;
+                }
+
+                translateBtn.disabled = true;
+                const originalBtnText = translateBtn.innerHTML;
+                translateBtn.innerHTML = 'Translating <span class="loading"></span>';
+
+                try {
+                    const translation = await translateText(text, fromLang, toLang);
+                    targetText.value = translation;
+                } catch (error) {
+                    console.error('Translation error:', error);
+                    alert('Translation failed. Please try again.');
+                } finally {
+                    translateBtn.disabled = false;
+                    translateBtn.innerHTML = 'Translate';
+                }
+            });
+
+            // Download PDF
+            downloadPdfBtn.addEventListener('click', function() {
+                if (!targetText.value.trim()) {
+                    alert('No translation to download');
+                    return;
+                }
+
+                const fromLang = languageNames[sourceLanguage.value];
+                const toLang = languageNames[targetLanguage.value];
+                
+                const doc = new jsPDF();
+                
+                // Add title
+                doc.setFontSize(18);
+                doc.text(`Translation from ${fromLang} to ${toLang}`, 10, 15);
+                
+                // Add original text
+                doc.setFontSize(12);
+                doc.text(`Original Text (${fromLang}):`, 10, 30);
+                doc.text(sourceText.value, 10, 40, { maxWidth: 180 });
+                
+                // Add translation
+                let yPos = 80;
+                try {
+                    if (doc.autoTable && doc.autoTable.previous) {
+                         yPos = doc.autoTable.previous.finalY + 15;
+                    }
+                } catch(e) {}
+
+                doc.text(`Translation (${toLang}):`, 10, yPos);
+                doc.text(targetText.value, 10, yPos + 10, { maxWidth: 180 });
+                
+                // Save the PDF
+                doc.save(`translation_${fromLang}_to_${toLang}.pdf`);
+            });
+
+            // Function to call the Netlify function for translation
+            async function translateText(text, fromLang, toLang) {
+                const response = await fetch('/.netlify/functions/translate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        text,
+                        fromLang,
+                        toLang
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                return data.translation;
+            }
+        });
+    </script>
+</body>
+</html>

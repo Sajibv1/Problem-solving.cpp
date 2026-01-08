@@ -1,0 +1,7 @@
+# Ignore the default output
+*.exe
+*.out
+*.html
+# Ignore specific executable names you use often
+html
+test
